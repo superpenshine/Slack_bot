@@ -15,7 +15,7 @@ RTM_READ_DELAY = 1
 DEFAULT_NUM_OF_MSG = 100
 EXAMPLE_COMMAND = "help"
 MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
-OAUTH_ACCESS_TOKEN = os.environ.get('OAUTH_ACCESS_TOKEN')
+OAUTH_ACCESS_TOKEN = "xoxp-371924836375-371924836423-374621409365-cef6373432e65c72fb3e06ad9ba66139"
 database = database()
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
