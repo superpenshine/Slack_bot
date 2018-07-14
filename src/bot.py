@@ -85,6 +85,7 @@ def get_chat_history(channel, latest=time.time(), oldest=None, num_of_msg=DEFAUL
         print("\nnumber of actual messages: {}".format(len(messages)))
         return messages
     else:
+        print (response)
         print("Error: Didn't get any chat history.")
         return "None"
 
