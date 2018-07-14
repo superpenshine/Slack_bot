@@ -155,7 +155,7 @@ def handle_command(command, channel, sender_id):
 
 if __name__ == "__main__":
 
-	print ("Start running.")
+    print ("Start running.")
     if slack_client.rtm_connect(with_team_state=False):
         print("SUCCESS:Bot connected and running!")
         bot_id = slack_client.api_call("auth.test")["user_id"]
