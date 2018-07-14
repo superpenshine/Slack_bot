@@ -1,0 +1,1 @@
+start cmd /k "cd /d C:\Users\shen\Desktop\Slack_Bot\slack_bot\Scripts && activate && cd /d C:\Users\shen\Desktop\Slack_Bot\src"
