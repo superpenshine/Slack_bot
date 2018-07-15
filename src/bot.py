@@ -46,6 +46,7 @@ def parse_events(slack_events):
     for event in slack_events:
         # event of message
         if event["type"] == "message" and not "subtype" in event:
+            print("event is: ",event)
             user_id, message = parse_direct_mention(event["text"])
             if user_id == bot_id:
                 print("message found")
@@ -81,8 +82,8 @@ def get_chat_history(channel, latest=time.time(), oldest=None, num_of_msg=DEFAUL
                 continue
             messages.append(t["text"])
         # remove @userid in messages
-        print("messages {}".format(messages))
-        print("\nnumber of actual messages: {}".format(len(messages)))
+        # print("messages {}".format(messages))
+        # print("\nnumber of actual messages: {}".format(len(messages)))
         return messages
     else:
         print (response)
@@ -141,6 +142,58 @@ def handle_command(command, channel, sender_id):
             "chat.postMessage",
             channel=channel,
             text=response
+            )
+
+    elif command.startswith("/sum"):
+        params = command.split(" ")[1:]
+        vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(1, 1), min_df=0, stop_words='english')
+        # keywords by cound
+        if len(params) == 1 and params[0].isdigit():
+            messages = get_chat_history(channel, num_of_msg=int(params[0]))
+            if len(messages) != 0:
+                tfidf = vectorizer.fit_transform(messages)
+                docId_featureId_tuple = [(tfidf.nonzero()[0][i],tfidf.nonzero()[1][i]) for i in range(len(tfidf.nonzero()[0]))]
+                features = vectorizer.get_feature_names()
+                rev_dic = dict([(feature, []) for feature in features])
+                for docId, featureId in docId_featureId_tuple:
+                    rev_dic[features[featureId]].append(docId)
+                scores = zip(features, np.asarray(tfidf.sum(axis=0)).ravel())
+                sorted_scores = sorted(scores, key=lambda x: x[1], reverse=True)
+                response = "This is a summary of your last *{0}* messages in channel <{1}>:\n".format(params[0], channel)
+        
+        # keywords by time, 
+        
+        # keywords by default
+                attachment_list = []
+                action_list = []
+                option_list = []
+                # attachment list dictionary
+                ald = {"text": "Choose a Keyword",
+                    "fallback": "It is from the fallback field.",
+                    "color": "#3AA3E3",
+                    "attachment_type": "default",
+                    "callback_id": "keyword_selection"}
+                # action list dictionary
+                acld = {"name": "keywords_list",
+                    "text": "Pick a keyword",
+                    "type": "select"}
+                for index, item in enumerate(sorted_scores):
+                    if index < 25:
+                        option_list.append({"text": item[0], "value": item[0]})  
+                    else:
+                        break
+                acld["options"] = option_list
+                action_list.append(acld)
+                ald["actions"] = action_list
+                attachment_list.append(ald)
+            else:
+                response = "There's no real messages in the last *{}* messages".format(params[0])
+        
+        slack_client.api_call(
+            "chat.postMessage",
+            channel=channel,
+            text=response,
+            attachments=attachment_list or None
             )
 
     else:
