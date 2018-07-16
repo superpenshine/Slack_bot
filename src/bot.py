@@ -6,9 +6,12 @@ import re
 import json
 import bluemix_tone as BT
 import numpy as np
+from flask import Flask
+from flask import request
 from sklearn.feature_extraction.text import TfidfVectorizer
 from slackclient import SlackClient
 from database import database
+from multiprocessing import Process, Value
 
 bot_id = None
 RTM_READ_DELAY = 1
@@ -18,6 +21,16 @@ MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
 OAUTH_ACCESS_TOKEN = os.environ.get('OAUTH_ACCESS_TOKEN')
 database = database()
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+app = Flask(__name__)
+
+@app.route('/zummary', methods=['POST', 'GET'])
+def reply_ok():
+    channel = request.form["channel_id"]
+    slack_client.api_call(
+            "chat.postMessage",
+            channel=channel,
+            text="I hear you !"
+            )
 
 def presence_query(channel):
     id_list = database.get_all_users_id()
@@ -206,10 +219,7 @@ def handle_command(command, channel, sender_id):
             text=response or default_responses
             )
 
-
-if __name__ == "__main__":
-
-    print ("Start running.")
+def whileloop():
     if slack_client.rtm_connect(with_team_state=False):
         print("SUCCESS:Bot connected and running!")
         bot_id = slack_client.api_call("auth.test")["user_id"]
@@ -233,3 +243,10 @@ if __name__ == "__main__":
             time.sleep(RTM_READ_DELAY)
     else:
         print("WARNING: Connection failed. Exception tracebak printed above.")
+
+if __name__ == "__main__":
+    # p = Process(target=whileloop)
+    # p.start()  
+    # app.run(debug=True, host='0.0.0.0')
+    whileloop()
+    
